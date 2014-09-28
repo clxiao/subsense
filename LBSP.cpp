@@ -271,12 +271,13 @@ void LBSP::calcDescImgDiff(const cv::Mat& oDesc1, const cv::Mat& oDesc2, cv::Mat
 	const size_t _step_row = oDesc1.step.p[0];
 	if(nChannels==1) {
 		oOutput.create(oDesc1.size(),CV_8UC1);
+		oOutput = cv::Scalar(0);
 		for(int i=0; i<oDesc1.rows; ++i) {
 			const size_t idx = _step_row*i;
 			const ushort* const desc1_ptr = (ushort*)(oDesc1.data+idx);
 			const ushort* const desc2_ptr = (ushort*)(oDesc2.data+idx);
 			for(int j=0; j<oDesc1.cols; ++j)
-				oOutput.at<uchar>(i,j) = (uchar)(fScaleFactor*hdist_ushort_8bitLUT(desc1_ptr[j],desc2_ptr[j]));
+				oOutput.at<uchar>(i,j) = (uchar)(fScaleFactor*hdist(desc1_ptr[j],desc2_ptr[j]));
 		}
 	}
 	else { //nChannels==3
@@ -284,19 +285,19 @@ void LBSP::calcDescImgDiff(const cv::Mat& oDesc1, const cv::Mat& oDesc2, cv::Mat
 			oOutput.create(oDesc1.size(),CV_8UC1);
 		else
 			oOutput.create(oDesc1.size(),CV_8UC3);
+		oOutput = cv::Scalar::all(0);
 		for(int i=0; i<oDesc1.rows; ++i) {
 			const size_t idx =  _step_row*i;
 			const ushort* const desc1_ptr = (ushort*)(oDesc1.data+idx);
 			const ushort* const desc2_ptr = (ushort*)(oDesc2.data+idx);
 			uchar* output_ptr = oOutput.data + oOutput.step.p[0]*i;
 			for(int j=0; j<oDesc1.cols; ++j) {
-				if(bForceMergeChannels)
-					output_ptr[j] = (uchar)((fScaleFactor*hdist_ushort_8bitLUT(desc1_ptr+j,desc2_ptr+j))/3);
-				else {
-					for(size_t n=0;n<3; ++n) {
-						const size_t idx2 = 3*j+n;
-						output_ptr[idx2] = (uchar)(fScaleFactor*hdist_ushort_8bitLUT(desc1_ptr[idx2],desc2_ptr[idx2]));
-					}
+				for(size_t n=0;n<3; ++n) {
+					const size_t idx2 = 3*j+n;
+					if(bForceMergeChannels)
+						output_ptr[j] += (uchar)((fScaleFactor*hdist(desc1_ptr[idx2],desc2_ptr[idx2]))/3);
+					else
+						output_ptr[idx2] = (uchar)(fScaleFactor*hdist(desc1_ptr[idx2],desc2_ptr[idx2]));
 				}
 			}
 		}
@@ -305,4 +306,13 @@ void LBSP::calcDescImgDiff(const cv::Mat& oDesc1, const cv::Mat& oDesc2, cv::Mat
 
 void LBSP::validateKeyPoints(std::vector<cv::KeyPoint>& voKeypoints, cv::Size oImgSize) {
 	cv::KeyPointsFilter::runByImageBorder(voKeypoints,oImgSize,PATCH_SIZE/2);
+}
+
+void LBSP::validateROI(cv::Mat& oROI) {
+	CV_Assert(!oROI.empty() && oROI.type()==CV_8UC1);
+	cv::Mat oROI_new(oROI.size(),CV_8UC1,cv::Scalar_<uchar>(0));
+	const size_t nBorderSize = PATCH_SIZE/2;
+	const cv::Rect nROI_inner(nBorderSize,nBorderSize,oROI.cols-nBorderSize*2,oROI.rows-nBorderSize*2);
+	cv::Mat(oROI,nROI_inner).copyTo(cv::Mat(oROI_new,nROI_inner));
+	oROI = oROI_new;
 }

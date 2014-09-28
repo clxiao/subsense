@@ -10,11 +10,11 @@
 #include <stdio.h>
 
 static void help() {
-	printf("\nMinimalistic example of foreground-background segmentation in a video sequence using\n"
-			"OpenCV's BackgroundSubtractor interface; will analyze frames from the default camera\n"
-			"or from a specified file.\n\n"
-			"Usage: \n"
-			"  ./bgfg_segm [--camera]=<use camera, true/false>, [--file]=<path to file> \n\n");
+    printf("\nMinimalistic example of foreground-background segmentation in a video sequence using\n"
+            "OpenCV's BackgroundSubtractor interface; will analyze frames from the default camera\n"
+            "or from a specified file.\n\n"
+            "Usage: \n"
+            "  ./bgfg_segm [--camera]=<use camera, true/false>, [--file]=<path to file> \n\n");
 }
 
 const char* keys = {
@@ -31,20 +31,20 @@ int main(int argc, const char** argv) {
     cv::Mat oCurrInputFrame, oCurrSegmMask, oCurrReconstrBGImg;
 
     if(bUseDefaultCamera) {
-    	oVideoInput.open(0);
-    	oVideoInput >> oCurrInputFrame;
+        oVideoInput.open(0);
+        oVideoInput >> oCurrInputFrame;
     }
     else {
-    	oVideoInput.open(sVideoFilePath);
-    	oVideoInput >> oCurrInputFrame;
-    	oVideoInput.set(CV_CAP_PROP_POS_FRAMES,0);
+        oVideoInput.open(sVideoFilePath);
+        oVideoInput >> oCurrInputFrame;
+        oVideoInput.set(CV_CAP_PROP_POS_FRAMES,0);
     }
     parser.printParams();
     if(!oVideoInput.isOpened() || oCurrInputFrame.empty()) {
-    	if(bUseDefaultCamera)
-    		printf("Could not open default camera.\n");
-    	else
-    		printf("Could not open video file at '%s'.\n",sVideoFilePath.c_str());
+        if(bUseDefaultCamera)
+            printf("Could not open default camera.\n");
+        else
+            printf("Could not open video file at '%s'.\n",sVideoFilePath.c_str());
         return -1;
     }
     oCurrSegmMask.create(oCurrInputFrame.size(),CV_8UC1);
@@ -53,9 +53,9 @@ int main(int argc, const char** argv) {
     cv::namedWindow("segmentation mask",cv::WINDOW_NORMAL);
     cv::namedWindow("reconstructed background",cv::WINDOW_NORMAL);
     BackgroundSubtractorSuBSENSE oBGSAlg;
-    oBGSAlg.initialize(oCurrInputFrame,std::vector<cv::KeyPoint>());
+    oBGSAlg.initialize(oCurrInputFrame,cv::Mat(oCurrInputFrame.size(),CV_8UC1,cv::Scalar_<uchar>(255)));
     for(;;) {
-    	oVideoInput >> oCurrInputFrame;
+        oVideoInput >> oCurrInputFrame;
         if(oCurrInputFrame.empty())
             break;
         oBGSAlg(oCurrInputFrame,oCurrSegmMask);
@@ -64,7 +64,8 @@ int main(int argc, const char** argv) {
         imshow("segmentation mask",oCurrSegmMask);
         imshow("reconstructed background",oCurrReconstrBGImg);
         if(cv::waitKey(1)==27)
-        	break;
+            break;
     }
     return 0;
 }
+
