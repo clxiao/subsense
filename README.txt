@@ -1,5 +1,8 @@
-This directory contains a 'cleaned' version of the SuBSENSE method configuration as presented in
-the 2014 CVPRW paper 'Flexible Background Subtraction With Self-Balanced Local Sensitivity'.
+This directory contains a cleaned version of the SuBSENSE method configuration presented in
+the 2014 IEEE Trans. Image Process. paper 'SuBSENSE : A Universal Change Detection Method with 
+Local Adaptive Sensitivity'. The original public release (first commit in this repo) corresponds
+to the configuration presented in the 2014 CVPRW paper 'Flexible Background Subtraction With
+Self-Balanced Local Sensitivity'.
 
 The main class used for background subtraction is BackgroundSubtractionSuBSENSE; all other files
 contain either dependencies, utilities or interfaces for this method. It is based on OpenCV's
