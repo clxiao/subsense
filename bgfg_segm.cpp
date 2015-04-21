@@ -29,7 +29,6 @@ int main(int argc, const char** argv) {
     const std::string sVideoFilePath = parser.get<std::string>("file");
     cv::VideoCapture oVideoInput;
     cv::Mat oCurrInputFrame, oCurrSegmMask, oCurrReconstrBGImg;
-
     if(bUseDefaultCamera) {
         oVideoInput.open(0);
         oVideoInput >> oCurrInputFrame;
@@ -49,16 +48,17 @@ int main(int argc, const char** argv) {
     }
     oCurrSegmMask.create(oCurrInputFrame.size(),CV_8UC1);
     oCurrReconstrBGImg.create(oCurrInputFrame.size(),oCurrInputFrame.type());
+    cv::Mat oSequenceROI(oCurrInputFrame.size(),CV_8UC1,cv::Scalar_<uchar>(255)); // for optimal results, pass a constrained ROI to the algorithm (ex: for CDnet, use ROI.bmp)
     cv::namedWindow("input",cv::WINDOW_NORMAL);
     cv::namedWindow("segmentation mask",cv::WINDOW_NORMAL);
     cv::namedWindow("reconstructed background",cv::WINDOW_NORMAL);
     BackgroundSubtractorSuBSENSE oBGSAlg;
-    oBGSAlg.initialize(oCurrInputFrame,cv::Mat(oCurrInputFrame.size(),CV_8UC1,cv::Scalar_<uchar>(255)));
+    oBGSAlg.initialize(oCurrInputFrame,oSequenceROI);
     for(;;) {
         oVideoInput >> oCurrInputFrame;
         if(oCurrInputFrame.empty())
             break;
-        oBGSAlg(oCurrInputFrame,oCurrSegmMask);
+        oBGSAlg(oCurrInputFrame,oCurrSegmMask,double(k<=100)); // lower rate in the early frames helps bootstrap the model when foreground is present
         oBGSAlg.getBackgroundImage(oCurrReconstrBGImg);
         imshow("input",oCurrInputFrame);
         imshow("segmentation mask",oCurrSegmMask);
