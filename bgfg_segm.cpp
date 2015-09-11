@@ -54,7 +54,7 @@ int main(int argc, const char** argv) {
     cv::namedWindow("reconstructed background",cv::WINDOW_NORMAL);
     BackgroundSubtractorSuBSENSE oBGSAlg;
     oBGSAlg.initialize(oCurrInputFrame,oSequenceROI);
-    for(;;) {
+    for(int k=0;;++k) {
         oVideoInput >> oCurrInputFrame;
         if(oCurrInputFrame.empty())
             break;
